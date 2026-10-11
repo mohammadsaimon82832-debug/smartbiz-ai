@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f8fc">
+  <title>SmartBiz | Business cockpit</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg:#f7f8fc; --surface:#fff; --ink:#172033; --muted:#778198; --line:#e8ebf2;
+      --brand:#4359db; --brand-soft:#eef0ff; --mint:#e5f7f1; --mint-ink:#148365;
+      --amber:#fff2d9; --amber-ink:#a5680b; --rose:#fff0ef; --rose-ink:#ba4941;
+      --shadow:0 12px 36px rgba(30,42,80,.055); --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+    .shell{min-height:100vh}
+    .sidebar{position:fixed;inset:0 auto 0 0;width:246px;background:#fff;border-right:1px solid var(--line);padding:25px 15px;display:flex;flex-direction:column;z-index:5}
+    .brand{display:flex;align-items:center;gap:11px;padding:0 10px 27px;font-size:17px;font-weight:760;letter-spacing:-.4px}
+    .brand-mark{width:36px;height:36px;border-radius:12px;background:linear-gradient(140deg,#5669ed,#8f7bfb);color:white;display:grid;place-items:center;font-size:18px}
+    .brand small{display:block;color:var(--muted);font-size:10px;font-weight:550;letter-spacing:.5px}
+    .nav-label{padding:10px 11px 7px;color:#a1a8b8;font-size:10px;font-weight:750;letter-spacing:1px;text-transform:uppercase}
+    .nav{display:grid;gap:4px}
+    .nav button{width:100%;display:flex;align-items:center;gap:12px;border:0;background:transparent;text-align:left;color:#68738a;border-radius:10px;padding:10px 12px;font-weight:570}
+    .nav button:hover{background:#f7f8fc;color:var(--ink)}
+    .nav button.active{color:var(--brand);background:var(--brand-soft);font-weight:680}
+    .nav-icon{width:19px;text-align:center;font-size:16px}
+    .sidebar-foot{margin-top:auto;padding:12px 10px;color:#9ba3b2;font-size:11px}
+    .local-pill{display:flex;align-items:center;gap:8px;padding:12px;background:#f7f8fc;border-radius:12px;color:#59647a}
+    .dot{width:8px;height:8px;border-radius:50%;background:#19a579;box-shadow:0 0 0 3px #dbf3e9}
+    .workspace{margin-left:246px;min-height:100vh}
+    .topbar{height:76px;background:rgba(255,255,255,.82);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 36px;position:sticky;top:0;z-index:3;backdrop-filter:blur(14px)}
+    .top-title{font-size:17px;font-weight:700;letter-spacing:-.3px}
+    .top-right{display:flex;align-items:center;gap:12px}
+    .date-chip,.status-chip{border:1px solid var(--line);background:#fff;padding:7px 11px;border-radius:9px;color:#657087;font-size:12px}
+    .status-chip{display:flex;gap:8px;align-items:center}
+    .status-chip .dot{width:7px;height:7px}
+    .avatar{height:34px;width:34px;background:#edeaff;color:#6255c9;border-radius:50%;display:grid;place-items:center;font-weight:750}
+    main{max-width:1440px;margin:auto;padding:31px 36px 56px}
+    .page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:23px}
+    h1{font-size:25px;letter-spacing:-.8px;margin:0 0 4px}
+    .subtitle{color:var(--muted);margin:0}
+    .actions{display:flex;gap:9px;align-items:center}
+    .btn{border:1px solid var(--line);background:#fff;color:#59647a;padding:9px 13px;border-radius:10px;font-weight:620;box-shadow:0 2px 3px rgba(20,30,60,.02)}
+    .btn:hover{border-color:#cbd1e0;color:var(--ink)}
+    .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+    .btn.primary:hover{background:#3449c5}
+    .btn.small{padding:6px 9px;font-size:12px}
+    .select,.search,.field{background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 11px;color:var(--ink);outline:none}
+    .select:focus,.search:focus,.field:focus,textarea:focus{border-color:#8794f1;box-shadow:0 0 0 3px #eef0ff}
+    .grid{display:grid;gap:17px}
+    .kpis{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}
+    .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .kpi{padding:18px 19px;min-height:130px}
+    .kpi-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px;font-weight:600}
+    .kpi-icon{width:32px;height:32px;border-radius:10px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-size:15px}
+    .kpi-value{font-size:25px;letter-spacing:-.8px;font-weight:760;margin-top:12px}
+    .kpi-note{font-size:11px;color:#9099aa;margin-top:3px}
+    .dashboard-grid{grid-template-columns:minmax(0,1.7fr) minmax(290px,.9fr);align-items:stretch}
+    .panel{padding:20px}
+    .panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:17px}
+    .panel-title{font-size:14px;font-weight:720}
+    .panel-sub{font-size:11px;color:var(--muted);margin-top:2px}
+    .chart{width:100%;height:230px;overflow:visible}
+    .chart text{font:10px Inter,system-ui,sans-serif;fill:#929bad}
+    .chart .gridline{stroke:#edf0f5;stroke-width:1}
+    .chart .bar{fill:#6576ed}
+    .chart .bar:hover{fill:#4359db}
+    .insights{display:grid;gap:11px}
+    .insight{display:flex;gap:10px;padding:12px;background:#fafbfe;border:1px solid #f0f1f6;border-radius:12px}
+    .insight-mark{width:27px;height:27px;border-radius:9px;display:grid;place-items:center;background:var(--amber);color:var(--amber-ink);flex:none}
+    .insight-mark.trend{background:var(--mint);color:var(--mint-ink)}
+    .insight-mark.opportunity{background:var(--brand-soft);color:var(--brand)}
+    .insight strong{font-size:12px;display:block}
+    .insight p{margin:3px 0 0;color:var(--muted);font-size:11px}
+    .lower-grid{grid-template-columns:minmax(0,1.5fr) minmax(290px,.9fr);margin-top:17px}
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:collapse;white-space:nowrap}
+    th{text-align:left;color:#9199aa;font-size:10px;text-transform:uppercase;letter-spacing:.7px;font-weight:700;padding:10px 12px;border-bottom:1px solid var(--line)}
+    td{padding:12px;border-bottom:1px solid #f0f1f5;color:#465168;font-size:12px}
+    tr:last-child td{border-bottom:0}
+    .strong{font-weight:680;color:var(--ink)}
+    .muted{color:var(--muted)}
+    .badge{display:inline-flex;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:700;background:#eff1f6;color:#667085}
+    .badge.good{background:var(--mint);color:var(--mint-ink)}
+    .badge.warn{background:var(--amber);color:var(--amber-ink)}
+    .badge.bad{background:var(--rose);color:var(--rose-ink)}
+    .notice{padding:12px 14px;border-radius:11px;background:#fff8e8;border:1px solid #f6e3b4;color:#785b20;font-size:12px;margin-bottom:17px}
+    .toolbar{display:flex;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+    .search{min-width:230px}
+    .split{display:grid;grid-template-columns:1fr 1fr;gap:17px}
+    .statline{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);font-size:12px}
+    .statline:last-child{border:0}
+    .chat-card{height:min(67vh,720px);min-height:420px;display:flex;flex-direction:column;overflow:hidden}
+    .chat-toolbar{padding:15px 19px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+    #chat-log{overflow-y:auto;flex:1;padding:20px;display:flex;flex-direction:column;gap:13px}
+    .bubble{max-width:78%;white-space:pre-wrap;padding:12px 15px;border-radius:14px;line-height:1.6;font-size:13px}
+    .bubble.user{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:4px}
+    .bubble.assistant{align-self:flex-start;background:#f3f4f9;color:#283249;border-bottom-left-radius:4px}
+    .bubble.error{align-self:flex-start;background:var(--rose);color:var(--rose-ink)}
+    .bubble small{display:block;margin-top:7px;opacity:.72;font-size:10px}
+    .chat-input{padding:14px;border-top:1px solid var(--line);display:flex;gap:9px}
+    .chat-input input{flex:1}
+    .empty{padding:38px 16px;text-align:center;color:var(--muted);font-size:13px}
+    .loading{color:var(--muted);padding:20px;text-align:center}
+    .skeleton{height:108px;border-radius:var(--radius);background:linear-gradient(90deg,#eef0f5,#f8f9fb,#eef0f5);background-size:200% 100%;animation:shimmer 1.3s infinite}
+    @keyframes shimmer{to{background-position:-200% 0}}
+    dialog{border:0;border-radius:17px;padding:0;width:min(560px,calc(100% - 28px));box-shadow:0 24px 80px rgba(20,30,60,.25);color:var(--ink)}
+    dialog::backdrop{background:rgba(22,30,51,.42);backdrop-filter:blur(3px)}
+    .dialog-head{padding:19px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+    .dialog-body{padding:20px 22px}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+    .form-field{display:grid;gap:5px}
+    .form-field.full{grid-column:1/-1}
+    .form-field label{font-size:11px;color:#657087;font-weight:650}
+    .form-field input,.form-field select,.form-field textarea{width:100%;min-width:0}
+    .dialog-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}
+    .toast{position:fixed;right:24px;bottom:24px;z-index:10;background:#1c2941;color:white;padding:12px 16px;border-radius:12px;box-shadow:var(--shadow);max-width:min(440px,calc(100% - 48px))}
+    .toast.error{background:#a63733}
+    .mobile-menu{display:none}
+    @media(max-width:1080px){.sidebar{width:215px}.workspace{margin-left:215px}main{padding:26px 24px}.topbar{padding:0 24px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:760px){.sidebar{transform:translateX(-100%);transition:transform .2s;width:250px}.sidebar.open{transform:translateX(0)}.workspace{margin-left:0}.topbar{height:64px;padding:0 15px}.mobile-menu{display:block}.top-title{font-size:15px}.date-chip{display:none}main{padding:22px 14px 42px}.page-head{align-items:flex-start;flex-direction:column}.dashboard-grid,.lower-grid,.split{grid-template-columns:1fr}.kpis{gap:10px}.kpi{padding:14px;min-height:115px}.kpi-value{font-size:20px}.kpi-top{font-size:11px}.panel{padding:15px}.chat-card{min-height:60vh}.bubble{max-width:92%}.status-chip{font-size:0;padding:8px}.status-chip .dot{width:8px;height:8px}.form-grid{grid-template-columns:1fr}.form-field.full{grid-column:auto}}
+  </style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="brand-mark">S</span><span>SmartBiz<small>BUSINESS COCKPIT</small></span></div>
+    <div class="nav-label">Workspace</div>
+    <nav class="nav" id="nav">
+      <button class="active" data-page="dashboard"><span class="nav-icon">◫</span>Dashboard</button>
+      <button data-page="assistant"><span class="nav-icon">✦</span>AI assistant</button>
+      <button data-page="products"><span class="nav-icon">▤</span>Products & inventory</button>
+      <button data-page="sales"><span class="nav-icon">↗</span>Sales & transactions</button>
+      <button data-page="customers"><span class="nav-icon">◎</span>Customers & dues</button>
+      <button data-page="expenses"><span class="nav-icon">⌁</span>Expenses</button>
+      <button data-page="reports"><span class="nav-icon">▥</span>Reports & analytics</button>
+      <button data-page="settings"><span class="nav-icon">⚙</span>Settings</button>
+    </nav>
+    <div class="sidebar-foot"><div class="local-pill"><span class="dot"></span><span>Private local workspace</span></div><div style="padding:12px 3px 0">Business records stay on this device.</div></div>
+  </aside>
+  <section class="workspace">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px"><button class="btn mobile-menu" id="menu" aria-label="Open navigation">☰</button><div class="top-title" id="top-title">Dashboard</div></div>
+      <div class="top-right"><div class="date-chip" id="today"></div><div class="status-chip" title="Ollama local model status"><span class="dot" id="ollama-dot"></span><span id="ollama-label">Checking local AI…</span></div><div class="avatar">S</div></div>
+    </header>
+    <main id="content"><div class="loading">Loading your business workspace…</div></main>
+  </section>
+</div>
+<dialog id="dialog"><div class="dialog-head"><strong id="dialog-title"></strong><button type="button" class="btn small" id="dialog-close" aria-label="Close">✕</button></div><div class="dialog-body" id="dialog-body"></div></dialog>
+<div id="toast-root"></div>
+<script>
+  const $ = (selector, root=document) => root.querySelector(selector);
+  const content = $("#content");
+  const dialog = $("#dialog");
+  const chatHistory = [];
+  let currency = "USD";
+  let activePage = "dashboard";
+  let navigationVersion = 0;
+  let dashboardPeriod = "this_month";
+  let apiToken = sessionStorage.getItem("smartbizApiToken") || "";
+
+  const pages = {
+    dashboard: "Dashboard",
+    assistant: "AI Business Assistant",
+    products: "Products & Inventory",
+    sales: "Sales & Transactions",
+    customers: "Customers & Dues",
+    expenses: "Expenses",
+    reports: "Reports & Analytics",
+    settings: "Settings",
+  };
+
+  async function api(path, options={}, retryAuth=true) {
+    const headers = {"Content-Type":"application/json", ...(options.headers || {})};
+    if (apiToken) headers["X-API-Key"] = apiToken;
+    const response = await fetch(`/api${path}`, {
+      ...options,
+      headers,
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.status === 401 && retryAuth) {
+      const token = window.prompt("This SmartBiz server requires an API access token.");
+      if (token) {
+        apiToken = token.trim();
+        sessionStorage.setItem("smartbizApiToken", apiToken);
+        return api(path, options, false);
+      }
+    }
+    if (!response.ok) throw new Error(typeof data.detail === "string" ? data.detail : `Request failed (${response.status}).`);
+    return data;
+  }
+
+  function money(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return "—";
+    try { return new Intl.NumberFormat(undefined, {style:"currency", currency, maximumFractionDigits:2}).format(n); }
+    catch { return `${currency} ${n.toFixed(2)}`; }
+  }
+  function esc(value) {
+    return String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+  }
+  function toast(message, error=false) {
+    const el = document.createElement("div");
+    el.className = `toast${error ? " error" : ""}`;
+    el.textContent = message;
+    $("#toast-root").replaceChildren(el);
+    setTimeout(() => el.remove(), 3600);
+  }
+  function empty(message) { return `<div class="empty">${esc(message)}</div>`; }
+  function btn(label, action, primary=false, attrs="") {
+    return `<button class="btn${primary ? " primary" : ""}" data-action="${esc(action)}" ${attrs}>${esc(label)}</button>`;
+  }
+  function pageHead(title, subtitle, actions="") {
+    return `<div class="page-head"><div><h1>${esc(title)}</h1><p class="subtitle">${esc(subtitle)}</p></div><div class="actions">${actions}</div></div>`;
+  }
+  function table(headers, rows) {
+    if (!rows.length) return empty("No records to show yet.");
+    return `<div class="table-wrap"><table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
+  }
+  function statusBadge(status) {
+    const type = status === "ok" ? "good" : status === "low_stock" ? "warn" : status === "out_of_stock" ? "bad" : "";
+    return `<span class="badge ${type}">${esc(String(status || "—").replaceAll("_"," "))}</span>`;
+  }
+  function showDialog(title, html, onSubmit) {
+    $("#dialog-title").textContent = title;
+    $("#dialog-body").innerHTML = html;
+    dialog.showModal();
+    const form = $("form", dialog);
+    if (form && onSubmit) form.addEventListener("submit", async event => {
+      event.preventDefault();
+      const submit = $("button[type=submit]", form);
+      submit.disabled = true;
+      try { await onSubmit(new FormData(form)); dialog.close(); }
+      catch(error) { toast(error.message, true); }
+      finally { submit.disabled = false; }
+    });
+  }
+  function formActions() {
+    return `<div class="dialog-actions"><button class="btn" type="button" onclick="document.querySelector('#dialog').close()">Cancel</button><button class="btn primary" type="submit">Save</button></div>`;
+  }
+  function field(label, name, type="text", value="", required=true, attrs="") {
+    return `<div class="form-field"><label for="f-${esc(name)}">${esc(label)}</label><input class="field" id="f-${esc(name)}" name="${esc(name)}" type="${type}" value="${esc(value)}" ${required?"required":""} ${attrs}></div>`;
+  }
+
+  async function navigate(page) {
+    const version = ++navigationVersion;
+    activePage = page;
+    $("#top-title").textContent = pages[page] || "SmartBiz";
+    $("#sidebar").classList.remove("open");
+    $("#nav").querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.page === page));
+    content.innerHTML = `<div class="loading">Loading ${esc(pages[page] || "page").toLowerCase()}…</div>`;
+    try {
+      const renderer = ({
+        dashboard:version=>renderDashboard(version),
+        assistant:version=>renderAssistant(version),
+        products:version=>renderProducts("",version),
+        sales:version=>renderSales("",version),
+        customers:version=>renderCustomers("",version),
+        expenses:version=>renderExpenses("",version),
+        reports:version=>renderReports(version),
+        settings:version=>renderSettings(version),
+      })[page];
+      await renderer(version);
+    } catch(error) {
+      if(version!==navigationVersion)return;
+      content.innerHTML = `${pageHead(pages[page], "We couldn’t load this view.")}<div class="notice">${esc(error.message)}</div><button class="btn" data-action="retry">Try again</button>`;
+    }
+  }
+
+  function renderChart(points) {
+    const width=720, height=230, left=42, right=12, top=14, bottom=30;
+    const chartW=width-left-right, chartH=height-top-bottom;
+    const max=Math.max(1,...points.map(p=>Number(p.total_sales)||0));
+    const gap=5, barW=Math.max(4,chartW/points.length-gap);
+    const grid=[0,.5,1].map(r=>`<line class="gridline" x1="${left}" x2="${width-right}" y1="${top+chartH*r}" y2="${top+chartH*r}"/><text x="0" y="${top+chartH*r+4}">${money(max*(1-r))}</text>`).join("");
+    const bars=points.map((p,i)=>{
+      const value=Number(p.total_sales)||0, h=chartH*value/max, x=left+i*(chartW/points.length)+gap/2;
+      return `<rect class="bar" x="${x}" y="${top+chartH-h}" width="${barW}" height="${Math.max(0,h)}" rx="4"><title>${esc(p.date)} · ${money(value)}</title></rect>${i%3===0||i===points.length-1?`<text x="${x}" y="${height-5}">${esc(p.date.slice(5))}</text>`:""}`;
+    }).join("");
+    return `<svg class="chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Daily sales for the last two weeks">${grid}${bars}</svg>`;
+  }
+
+  async function renderDashboard(version=navigationVersion) {
+    const data=await api(`/dashboard?period=${encodeURIComponent(dashboardPeriod)}`);
+    if(version!==navigationVersion)return;
+    const k=data.kpis;
+    const cards=[
+      ["Total sales",k.total_sales,"↗","Selected period"],
+      ["Gross profit",k.gross_profit,"◈","Sales less cost of goods sold"],
+      ["Profit after expenses",k.profit_after_recorded_expenses,"⌁","Recorded expenses deducted"],
+      ["Total expenses",k.total_expenses,"−","Recorded in this period"],
+      ["Customer balances",k.outstanding_sales_balances,"◎","Current outstanding dues"],
+      ["Products",k.total_products,"▤","Active catalog items"],
+      ["Low-stock items",k.low_stock_products,"!","At or below reorder level"],
+      ["Transactions",k.sale_count,"↔","Sales in selected period"],
+    ];
+    const periodOptions=[["today","Today"],["this_week","This week"],["this_month","This month"],["last_30_days","Last 30 days"],["all_time","All time"]];
+    const actions=`<select class="select" id="dashboard-period" aria-label="Dashboard reporting period">${periodOptions.map(([v,l])=>`<option value="${v}" ${v===dashboardPeriod?"selected":""}>${l}</option>`).join("")}</select>${btn("New sale","new-sale",true)}`;
+    const cardsHtml=cards.map(([label,value,icon,note])=>`<article class="card kpi"><div class="kpi-top">${esc(label)}<span class="kpi-icon">${esc(icon)}</span></div><div class="kpi-value">${label==="Products"||label==="Low-stock items"||label==="Transactions"?Number(value||0).toLocaleString():money(value)}</div><div class="kpi-note">${esc(note)}</div></article>`).join("");
+    const txRows=data.recent_transactions.map(s=>`<tr><td class="strong">#${s.id}</td><td>${esc(s.sale_date)}</td><td>${esc(s.customer_name)}</td><td class="strong">${money(s.total)}</td><td>${money(s.amount_paid)}</td></tr>`);
+    const alerts=data.inventory_alerts.map(p=>`<div class="insight"><span class="insight-mark">${p.stock_qty===0?"!":"↓"}</span><div><strong>${esc(p.name)} · ${esc(p.stock_qty)} left</strong><p>Reorder at ${esc(p.reorder_level)} · ${esc(p.priority||"low")} priority</p></div></div>`);
+    const insightCards=data.insights.map(item=>`<div class="insight"><span class="insight-mark ${esc(item.type||"")}">✦</span><div><strong>${esc(item.title)}</strong><p>${esc(item.detail)}</p></div></div>`);
+    const greeting=new Date().getHours()<12?"morning":new Date().getHours()<18?"afternoon":"evening";
+    content.innerHTML=`${pageHead("Good "+greeting+", here’s your business.","A live view of your business performance.",actions)}
+      ${data.data_status==="no_sales"||data.data_note?`<div class="notice">${esc(data.data_note||"No sales are recorded for this period; totals reflect that limitation.")}</div>`:""}
+      <section class="grid kpis">${cardsHtml}</section>
+      <section class="grid dashboard-grid">
+        <article class="card panel"><div class="panel-head"><div><div class="panel-title">Sales overview</div><div class="panel-sub">Daily sales · last 14 days</div></div><span class="badge">Live data</span></div>${renderChart(data.daily_sales)}</article>
+        <article class="card panel"><div class="panel-head"><div><div class="panel-title">Business insights</div><div class="panel-sub">Evidence-based signals from your records</div></div></div><div class="insights">${insightCards.join("")||empty("No notable performance insights for this period.")}</div></article>
+      </section>
+      <section class="grid lower-grid">
+        <article class="card panel"><div class="panel-head"><div><div class="panel-title">Recent transactions</div><div class="panel-sub">Latest recorded sales</div></div><button class="btn small" data-page-link="sales">View all</button></div>${table(["Sale","Date","Customer","Total","Paid"],txRows)}</article>
+        <article class="card panel"><div class="panel-head"><div><div class="panel-title">Inventory alerts</div><div class="panel-sub">Items to review for restocking</div></div><button class="btn small" data-page-link="products">Inventory</button></div><div class="insights">${alerts.join("")||empty("No products need attention.")}</div></article>
+      </section>`;
+    $("#dashboard-period").addEventListener("change",e=>{dashboardPeriod=e.target.value;navigate("dashboard");});
+  }
+
+  async function renderAssistant(version=navigationVersion) {
+    const status=await api("/ollama/status");
+    if(version!==navigationVersion)return;
+    content.innerHTML=`${pageHead("AI business assistant","Ask questions about sales, stock, expenses and performance. Answers use your local Ollama model and real business tools.")}
+      <article class="card chat-card"><div class="chat-toolbar"><div><div class="panel-title">SmartBiz assistant</div><div class="panel-sub" id="chat-status">${status.connected&&status.model_available?`Local model · ${esc(status.model)}`:esc(status.message)}</div></div><span class="badge ${status.connected&&status.model_available?"good":"warn"}">${status.connected&&status.model_available?"Local & ready":"Unavailable"}</span></div>
+      <div id="chat-log" aria-live="polite"><div class="bubble assistant">Hi! I can analyze your recorded business data. Try asking about today’s sales, low stock, customer dues, or this month’s profit.</div></div>
+      <form class="chat-input" id="chat-form"><input class="field" id="chat-question" maxlength="1000" placeholder="Ask about your business…" required><button class="btn primary" id="chat-send" type="submit">Ask</button></form></article>
+      <div class="actions" style="margin-top:13px">${["How much did I sell today?","Which products should I restock?","How much do customers owe me?","Compare this month with last month."].map(q=>`<button class="btn small suggestion">${esc(q)}</button>`).join("")}</div>`;
+    const log=$("#chat-log"), input=$("#chat-question"), form=$("#chat-form"), send=$("#chat-send");
+    function addBubble(text,role,tools="") {const el=document.createElement("div");el.className=`bubble ${role}`;el.textContent=text;if(tools){const small=document.createElement("small");small.textContent=`Data sources: ${tools}`;el.append(small);}log.append(el);log.scrollTop=log.scrollHeight;}
+    async function ask(question) {
+      addBubble(question,"user");send.disabled=true;send.textContent="Thinking…";
+      const pending=document.createElement("div");pending.className="bubble assistant";pending.textContent="Checking your business records…";log.append(pending);
+      try {
+        const result=await api("/chat",{method:"POST",body:JSON.stringify({question,history:chatHistory.slice(-10)})});
+        pending.remove();const used=(result.tools_used||[]).filter(t=>t.status==="ok").map(t=>t.name);
+        addBubble(result.answer,"assistant",used.join(", "));
+        chatHistory.push({role:"user",content:question},{role:"assistant",content:result.answer});
+      } catch(error) {pending.remove();addBubble(error.message,"error");}
+      finally {send.disabled=false;send.textContent="Ask";input.focus();}
+    }
+    form.addEventListener("submit",e=>{e.preventDefault();const question=input.value.trim();if(!question)return;input.value="";ask(question);});
+    content.querySelectorAll(".suggestion").forEach(button=>button.addEventListener("click",()=>ask(button.textContent)));
+  }
+
+  async function renderProducts(search="",version=navigationVersion) {
+    const [result,low]=await Promise.all([api(`/products?search=${encodeURIComponent(search)}`),api("/inventory/low-stock")]);
+    if(version!==navigationVersion)return;
+    const rows=result.products.map(p=>`<tr><td class="strong">${esc(p.name)}<div class="muted">${esc(p.sku)}</div></td><td>${esc(p.category)}</td><td>${money(p.cost_price)}</td><td>${money(p.selling_price)}</td><td>${esc(p.stock_qty)}</td><td>${esc(p.reorder_level)}</td><td>${statusBadge(p.stock_qty===0?"out_of_stock":p.stock_qty<=p.reorder_level?"low_stock":"ok")}</td><td><button class="btn small" data-edit-product="${p.id}">Edit</button></td></tr>`);
+    const alerts=low.products.slice(0,5).map(p=>`<div class="insight"><span class="insight-mark">${p.stock_qty===0?"!":"↓"}</span><div><strong>${esc(p.name)} · ${esc(p.stock_qty)} units</strong><p>Suggested reorder ${esc(p.suggested_reorder_qty)} · ${esc(p.priority)} priority</p></div></div>`);
+    content.innerHTML=`${pageHead("Products & inventory","Manage your catalog, monitor stock and review restock signals.",btn("Add product","add-product",true))}
+      <div class="toolbar"><input class="search" id="product-search" placeholder="Search name, SKU or category…" value="${esc(search)}"><span class="badge">${result.count} products</span></div>
+      <article class="card panel" style="margin-bottom:17px"><div class="panel-head"><div><div class="panel-title">Inventory alerts</div><div class="panel-sub">Low-stock products, prioritized by demand</div></div></div><div class="insights">${alerts.join("")||empty("No products need restocking right now.")}</div></article>
+      <article class="card panel"><div class="panel-head"><div><div class="panel-title">Product catalog</div><div class="panel-sub">Current stock and pricing</div></div></div>${table(["Product","Category","Unit cost","Sale price","In stock","Reorder at","Status",""],rows)}</article>`;
+    $("#product-search").addEventListener("input",e=>{clearTimeout(window.productSearchTimer);window.productSearchTimer=setTimeout(()=>renderProducts(e.target.value),250);});
+    content.querySelectorAll("[data-edit-product]").forEach(b=>b.addEventListener("click",()=>editProduct(result.products.find(p=>p.id===Number(b.dataset.editProduct)))));
+  }
+
+  function productForm(product={}) {
+    return `<form id="product-form"><div class="form-grid">
+      ${field("SKU","sku","text",product.sku||"",true,'maxlength="50"')}
+      ${field("Product name","name","text",product.name||"",true,'maxlength="150"')}
+      ${field("Category","category","text",product.category||"General",true,'maxlength="100"')}
+      ${field("Unit cost","cost_price","number",product.cost_price??0,true,'min="0" step="0.01"')}
+      ${field("Sale price","selling_price","number",product.selling_price??0,true,'min="0" step="0.01"')}
+      ${field("Stock quantity","stock_qty","number",product.stock_qty??0,true,'min="0" step="1"')}
+      ${field("Reorder level","reorder_level","number",product.reorder_level??0,true,'min="0" step="1"')}
+      <div class="form-field"><label for="f-active">Status</label><select class="field" name="is_active" id="f-active"><option value="true" ${product.is_active===false?"":"selected"}>Active</option><option value="false" ${product.is_active===false?"selected":""}>Discontinued</option></select></div>
+      </div>${formActions()}</form>`;
+  }
+  function productPayload(fd) {return {sku:fd.get("sku"),name:fd.get("name"),category:fd.get("category"),cost_price:Number(fd.get("cost_price")),selling_price:Number(fd.get("selling_price")),stock_qty:Number(fd.get("stock_qty")),reorder_level:Number(fd.get("reorder_level")),is_active:fd.get("is_active")==="true"};}
+  function editProduct(product) {
+    showDialog(product?"Edit product":"Add product",productForm(product),async fd=>{
+      await api(product?`/products/${product.id}`:"/products",{method:product?"PUT":"POST",body:JSON.stringify(productPayload(fd))});
+      toast(product?"Product updated.":"Product added.");await renderProducts();
+    });
+  }
+
+  async function renderSales(search="",version=navigationVersion) {
+    const [result,products,customers]=await Promise.all([api(`/sales?search=${encodeURIComponent(search)}`),api("/products"),api("/customers")]);
+    if(version!==navigationVersion)return;
+    const rows=result.sales.map(s=>`<tr><td class="strong">#${s.id}</td><td>${esc(s.sale_date)}</td><td>${esc(s.customer_name)}</td><td>${esc(s.item_count)} line(s)</td><td class="strong">${money(s.total)}</td><td>${money(s.amount_paid)}</td><td><button class="btn small" data-sale="${s.id}">Details</button></td></tr>`);
+    content.innerHTML=`${pageHead("Sales & transactions","Record a sale with stock validation and review transaction history.",btn("Record sale","new-sale",true))}
+      <div class="toolbar"><input class="search" id="sale-search" placeholder="Search sale, customer or note…" value="${esc(search)}"><span class="badge">${result.count} latest records</span></div>
+      <article class="card panel">${table(["Sale","Date","Customer","Items","Sale total","Paid",""],rows)}</article>`;
+    $("#sale-search").addEventListener("input",e=>{clearTimeout(window.salesSearchTimer);window.salesSearchTimer=setTimeout(()=>renderSales(e.target.value),250);});
+    content.querySelectorAll("[data-sale]").forEach(b=>b.addEventListener("click",()=>saleDetails(b.dataset.sale)));
+  }
+  async function saleDetails(id) {
+    const data=await api(`/sales/${id}`);
+    const items=data.items.map(i=>`<div class="statline"><span>${esc(i.name)} × ${esc(i.quantity)}</span><strong>${money(i.line_total)}</strong></div>`).join("");
+    showDialog(`Sale #${id}`,`<div class="muted">${esc(data.sale.sale_date)} · ${esc(data.sale.customer_name)}</div><div style="margin-top:13px">${items}</div><div class="statline"><span>Total</span><strong>${money(data.sale.total)}</strong></div><div class="statline"><span>Paid at sale</span><strong>${money(data.sale.amount_paid)}</strong></div>${data.sale.notes?`<p class="muted">${esc(data.sale.notes)}</p>`:""}`,null);
+  }
+  function newSale(products,customers) {
+    if(!products.length){toast("Add a product before recording a sale.",true);return;}
+    const options=products.map(p=>`<option value="${p.id}">${esc(p.name)} · ${esc(p.sku)} · ${p.stock_qty} in stock · ${money(p.selling_price)}</option>`).join("");
+    showDialog("Record a sale",`<form id="sale-form"><div class="form-grid">
+      <div class="form-field"><label for="sale-date">Sale date</label><input class="field" name="sale_date" id="sale-date" type="date" value="${new Date().toISOString().slice(0,10)}" required></div>
+      <div class="form-field"><label for="sale-customer">Customer (optional)</label><select class="field" name="customer_id" id="sale-customer"><option value="">Walk-in (paid in full)</option>${customers.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select></div>
+      <div class="form-field full"><label for="sale-product">Product</label><select class="field" name="product_id" id="sale-product" required>${options}</select></div>
+      ${field("Quantity","quantity","number",1,true,'min="1" step="1"')}
+      ${field("Amount received now (optional)","amount_paid","number","",false,'min="0" step="0.01"')}
+      ${field("Notes","notes","text","",false,'maxlength="500"')}
+      </div><p class="panel-sub">Unit price comes from the selected product. Stock is checked and reduced only when this sale saves.</p>${formActions()}</form>`,async fd=>{
+      if(!confirm("Record this sale and deduct its quantity from inventory?"))return;
+      const id=crypto.randomUUID();
+      const body={sale_date:fd.get("sale_date"),customer_id:fd.get("customer_id")?Number(fd.get("customer_id")):null,amount_paid:fd.get("amount_paid")===""?null:Number(fd.get("amount_paid")),notes:fd.get("notes")||null,request_id:id,items:[{product_id:Number(fd.get("product_id")),quantity:Number(fd.get("quantity"))}]};
+      const result=await api("/sales",{method:"POST",body:JSON.stringify(body)});
+      toast(result.duplicate?"Sale already recorded.":`Sale #${result.sale_id} recorded.`);
+      if(activePage==="sales")await renderSales();else await renderDashboard();
+    });
+  }
+
+  async function renderCustomers(search="",version=navigationVersion) {
+    const result=await api(`/customers?search=${encodeURIComponent(search)}`);
+    const rows=result.customers.map(c=>`<tr><td class="strong">${esc(c.name)}</td><td>${esc(c.phone||"—")}</td><td class="strong">${money(c.outstanding_balance)}</td><td>${c.outstanding_balance>0?`<button class="btn small" data-payment="${c.id}" data-balance="${c.outstanding_balance}">Record payment</button>`:'<span class="badge good">Settled</span>'}</td></tr>`);
+    const dues=await api("/customers/dues");
+    if(version!==navigationVersion)return;
+    content.innerHTML=`${pageHead("Customers & dues","Manage customer records and track outstanding sales balances.",btn("Add customer","add-customer",true))}
+      <div class="grid split" style="margin-bottom:17px"><article class="card panel"><div class="panel-sub">Outstanding customer balances</div><div class="kpi-value">${money(dues.total_outstanding||0)}</div></article><article class="card panel"><div class="panel-sub">Customers currently owing</div><div class="kpi-value">${Number(dues.customers_owing_count||0)}</div></article></div>
+      <div class="toolbar"><input class="search" id="customer-search" placeholder="Search customer or phone…" value="${esc(search)}"><span class="badge">${result.count} customers</span></div>
+      <article class="card panel">${table(["Customer","Phone","Outstanding",""],rows)}</article>`;
+    $("#customer-search").addEventListener("input",e=>{clearTimeout(window.customerSearchTimer);window.customerSearchTimer=setTimeout(()=>renderCustomers(e.target.value),250);});
+    content.querySelectorAll("[data-payment]").forEach(b=>b.addEventListener("click",()=>recordPayment(Number(b.dataset.payment),Number(b.dataset.balance))));
+  }
+  function addCustomer() {
+    showDialog("Add customer",`<form><div class="form-grid">${field("Customer name","name")}${field("Phone","phone","tel","",false)}</div>${formActions()}</form>`,async fd=>{
+      await api("/customers",{method:"POST",body:JSON.stringify({name:fd.get("name"),phone:fd.get("phone")||null})});
+      toast("Customer added.");await renderCustomers();
+    });
+  }
+  function recordPayment(id,balance) {
+    showDialog("Record customer payment",`<form><div class="form-grid">${field("Payment date","payment_date","date",new Date().toISOString().slice(0,10))}${field(`Amount (balance ${money(balance)})`,"amount","number","",true,`min="0.01" max="${balance}" step="0.01"`)}${field("Note","notes","text","",false)}</div>${formActions()}</form>`,async fd=>{
+      if(!confirm("Record this payment against the customer's outstanding balance?"))return;
+      await api(`/customers/${id}/payments`,{method:"POST",body:JSON.stringify({payment_date:fd.get("payment_date"),amount:Number(fd.get("amount")),notes:fd.get("notes")||null})});
+      toast("Payment recorded.");await renderCustomers();
+    });
+  }
+
+  async function renderExpenses(search="",version=navigationVersion) {
+    const result=await api(`/expenses?search=${encodeURIComponent(search)}`);
+    const summary=await api("/expenses/summary?period=this_month");
+    if(version!==navigationVersion)return;
+    const rows=result.expenses.map(e=>`<tr><td>${esc(e.expense_date)}</td><td class="strong">${esc(e.category)}</td><td>${esc(e.description||"—")}</td><td class="strong">${money(e.amount)}</td></tr>`);
+    const categories=(summary.by_category||[]).map(c=>`<div class="statline"><span>${esc(c.category)}</span><strong>${money(c.total)}</strong></div>`).join("");
+    content.innerHTML=`${pageHead("Expenses","Track recorded operating costs and their impact on profit.",btn("Add expense","add-expense",true))}
+      <div class="grid split" style="margin-bottom:17px"><article class="card panel"><div class="panel-sub">Expenses this month</div><div class="kpi-value">${money(summary.total_recorded_expenses||0)}</div><div class="panel-sub">Only recorded expenses are included.</div></article><article class="card panel"><div class="panel-title">By category · this month</div>${categories||empty("No expenses recorded this month.")}</article></div>
+      <div class="toolbar"><input class="search" id="expense-search" placeholder="Search category or description…" value="${esc(search)}"><span class="badge">${result.count} latest entries</span></div><article class="card panel">${table(["Date","Category","Description","Amount"],rows)}</article>`;
+    $("#expense-search").addEventListener("input",e=>{clearTimeout(window.expenseSearchTimer);window.expenseSearchTimer=setTimeout(()=>renderExpenses(e.target.value),250);});
+  }
+  function addExpense() {
+    showDialog("Record an expense",`<form><div class="form-grid">${field("Date","expense_date","date",new Date().toISOString().slice(0,10))}${field("Category","category")}${field("Amount","amount","number","",true,'min="0.01" step="0.01"')}${field("Description","description","text","",false,'maxlength="500"')}</div>${formActions()}</form>`,async fd=>{
+      await api("/expenses",{method:"POST",body:JSON.stringify({expense_date:fd.get("expense_date"),category:fd.get("category"),amount:Number(fd.get("amount")),description:fd.get("description")||null})});
+      toast("Expense recorded.");await renderExpenses();
+    });
+  }
+
+  async function renderReports(version=navigationVersion) {
+    if(version!==navigationVersion)return;
+    content.innerHTML=`${pageHead("Reports & analytics","Generate reports from real business records.")}
+      <article class="card panel"><div class="toolbar"><div><div class="panel-title">Business performance report</div><div class="panel-sub">Daily, weekly, or month-to-date with previous-period comparison</div></div><div class="actions"><select class="select" id="report-type"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly" selected>Monthly</option></select><input class="field" id="report-date" type="date" value="${new Date().toISOString().slice(0,10)}"><button class="btn primary" id="generate-report">Generate report</button></div></div><div id="report-output">${empty("Choose a report type and generate to view verified totals.")}</div></article>`;
+    $("#generate-report").addEventListener("click",async e=>{
+      const reportVersion=navigationVersion;
+      const button=e.currentTarget;button.disabled=true;button.textContent="Generating…";
+      try {
+        const type=$("#report-type").value, date=$("#report-date").value;
+        const r=await api(`/reports/${type}?report_date=${encodeURIComponent(date)}`);
+        if(reportVersion!==navigationVersion)return;
+        const s=r.summary||{};
+        $("#report-output").innerHTML=`${r.message?`<div class="notice">${esc(r.message)}</div>`:""}<div class="grid kpis" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-top:14px">${[["Sales",s.total_sales],["COGS",s.cost_of_goods_sold],["Gross profit",s.gross_profit],["Expenses",s.total_recorded_expenses],["Profit after recorded expenses",s.profit_after_recorded_expenses]].map(([l,v])=>`<div class="card kpi"><div class="kpi-top">${esc(l)}</div><div class="kpi-value" style="font-size:19px">${money(v)}</div></div>`).join("")}</div><div class="split" style="margin-top:15px"><div><h3>Period</h3><p class="muted">${esc(r.period?.start_date||"All time")} to ${esc(r.period?.end_date||date)}</p><h3>Previous period comparison</h3>${Object.entries(r.comparison_with_previous_period||{}).map(([k,v])=>`<div class="statline"><span>${esc(k.replaceAll("_"," "))}</span><strong>${esc(v.change_pct==null?"Not available":`${v.change_pct}%`)}</strong></div>`).join("")}</div><div><h3>Business insights</h3><div class="insights">${(r.insights||[]).map(i=>`<div class="insight"><span class="insight-mark">✦</span><div><strong>${esc(i.title)}</strong><p>${esc(i.detail)}</p></div></div>`).join("")||empty("No notable insights in this report.")}</div></div></div>`;
+      } catch(error) {if(reportVersion===navigationVersion)$("#report-output").innerHTML=`<div class="notice">${esc(error.message)}</div>`;}
+      finally {button.disabled=false;button.textContent="Generate report";}
+    });
+  }
+
+  async function renderSettings(version=navigationVersion) {
+    const [status,health]=await Promise.all([api("/ollama/status"),fetch("/health").then(r=>r.json()).catch(()=>({status:"unknown"}))]);
+    if(version!==navigationVersion)return;
+    content.innerHTML=`${pageHead("Settings","Local AI model and private workspace configuration.")}
+      <div class="grid split"><article class="card panel"><div class="panel-title">Ollama local model</div><div class="panel-sub">Inference runs on this computer. No cloud AI key is required.</div><div class="statline" style="margin-top:14px"><span>Connection</span><strong>${status.connected?'<span class="badge good">Connected</span>':'<span class="badge bad">Not responding</span>'}</strong></div><div class="statline"><span>Configured model</span><strong>${esc(status.model)}</strong></div><div class="statline"><span>Model downloaded</span><strong>${status.model_available?'<span class="badge good">Available</span>':'<span class="badge warn">Missing</span>'}</strong></div><p class="panel-sub">${esc(status.message)}</p><button class="btn" id="refresh-status">Refresh status</button></article>
+      <article class="card panel"><div class="panel-title">Business data and privacy</div><div class="panel-sub">Data remains in the local SQLite database. The assistant has read-only access to analytics tools; business changes happen through validated application forms.</div><div class="statline" style="margin-top:14px"><span>API health</span><strong>${esc(health.status)}</strong></div><div class="statline"><span>Chat model</span><strong>${esc(status.model)}</strong></div><div class="notice" style="margin-top:15px">Keep this local app bound to your own device. Add real authentication and HTTPS before exposing it to a network.</div></article></div>`;
+    $("#refresh-status").addEventListener("click",()=>renderSettings());
+  }
+
+  $("#nav").addEventListener("click",e=>{const button=e.target.closest("[data-page]");if(button)navigate(button.dataset.page);});
+  content.addEventListener("click",e=>{
+    const page=e.target.closest("[data-page-link]");if(page)navigate(page.dataset.pageLink);
+    const action=e.target.closest("[data-action]")?.dataset.action;
+    if(action==="retry")navigate(activePage);
+    if(action==="new-sale")loadSaleForm();
+    if(action==="add-product")editProduct();
+    if(action==="add-customer")addCustomer();
+    if(action==="add-expense")addExpense();
+  });
+  async function loadSaleForm() {
+    try {const [p,c]=await Promise.all([api("/products"),api("/customers")]);newSale(p.products,c.customers);}
+    catch(error){toast(error.message,true);}
+  }
+  $("#dialog-close").addEventListener("click",()=>dialog.close());
+  $("#menu").addEventListener("click",()=>$("#sidebar").classList.toggle("open"));
+  $("#today").textContent=new Intl.DateTimeFormat(undefined,{weekday:"short",month:"short",day:"numeric",year:"numeric"}).format(new Date());
+
+  async function start() {
+    try {
+      const status=await api("/ollama/status");
+      $("#ollama-label").textContent=status.connected&&status.model_available?`Local AI · ${status.model}`:"Ollama unavailable";
+      $("#ollama-dot").style.background=status.connected&&status.model_available?"#19a579":"#df9c36";
+      currency=(await api("/dashboard?period=this_month")).currency||currency;
+    } catch {$("#ollama-label").textContent="Local AI status unavailable";}
+    if(activePage==="dashboard")await navigate("dashboard");
+  }
+  start();
+</script>
+</body>
+</html>
